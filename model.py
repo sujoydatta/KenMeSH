@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from dgl.nn.pytorch.conv import SAGEConv, RelGraphConv
 from transformers import BertModel
-from transformers.modeling_bert import BertPreTrainedModel
+from transformers.models.bert.modeling_bert import BertPreTrainedModel
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from gat import GAT
 
@@ -660,7 +660,7 @@ class CorNet(nn.Module):
         return logits
 
 
-gcn_msg = fn.copy_src(src='h', out='m')
+gcn_msg = fn.copy_u(u='h', out='m')
 gcn_reduce = fn.sum(msg='m', out='h')
 
 

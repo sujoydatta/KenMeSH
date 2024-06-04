@@ -288,7 +288,7 @@ def mesh_mask(file, neigh_mask, journal_path):
     return mesh_index
 
 
-def build_dataset(train_path, neighbors, journal_mesh, MeSH_id_pair_file):
+def build_dataset(train_path, neighbors, journal_mesh, MeSH_id_pair_file, index_dic):
 
     mapping_id = {}
     with open(MeSH_id_pair_file, 'r') as f:
@@ -298,10 +298,11 @@ def build_dataset(train_path, neighbors, journal_mesh, MeSH_id_pair_file):
 
     meshIDs = list(mapping_id.values())
     print('Total number of labels %d' % len(meshIDs))
-    mlb = MultiLabelBinarizer(classes=meshIDs)
-    mlb.fit(meshIDs)
+    meshLabels = label2index(meshIDs, index_dic)
+    mlb = MultiLabelBinarizer(classes=meshLabels)
+    mlb.fit(meshLabels)
 
-    pmid_neighbors, neighbors_mesh = read_neighbors(neighbors)
+    pmid_neighbors, neighbors_mesh = read_neighbors(neighbors, index_dic)
 
     f = open(train_path, encoding="utf8")
     objects = ijson.items(f, 'articles.item')
@@ -325,11 +326,11 @@ def build_dataset(train_path, neighbors, journal_mesh, MeSH_id_pair_file):
                 mesh_id = obj['meshID']
                 journal = obj['journal']
                 year = obj['year']
-                mesh_from_journal = journal_mesh[journal].split(',')
+                mesh_from_journal = journal_mesh[journal]
                 if ids == pmid_neighbors[i]:
-                    mesh_from_neighbors = neighbors_mesh[i].split(',')
+                    mesh_from_neighbors = neighbors_mesh[i]
                 mesh = list(set(mesh_from_journal + mesh_from_neighbors))
-                mask = mlb.fit_transform(mesh)
+                mask = mlb.fit_transform([mesh]).tolist()
                 data_point['pmid'] = ids
                 data_point['title'] = heading
                 data_point['abstractText'] = clean_abstract
@@ -337,7 +338,8 @@ def build_dataset(train_path, neighbors, journal_mesh, MeSH_id_pair_file):
                 data_point['meshMask'] = mask
                 data_point['year'] = year
                 dataset.append(data_point)
-        except AttributeError:
+        except AttributeError as e:
+            print(e)
             print(obj["pmid"].strip())
 
     pubmed = {'articles': dataset}
@@ -386,7 +388,7 @@ def main():
 
     # 3. get masks from journal and merge the masks generated from neighbours
     journal_mesh = get_journal_mesh(args.journal_info, args.threshold, meshIDs)
-    dataset = build_dataset(args.allMesh, args.neigh_path, journal_mesh, args.meSH_pair_path)
+    dataset = build_dataset(args.allMesh, args.neigh_path, journal_mesh, args.meSH_pair_path, index_dic)
     pubmed = {'articles': dataset}
     with open(args.save_path, "w") as outfile:
         json.dump(pubmed, outfile)

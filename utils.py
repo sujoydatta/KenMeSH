@@ -79,9 +79,9 @@ def _create_data_from_iterator(vocab, iterator, include_unk, is_multichannel=Tru
                     ab_tokens = torch.tensor([vocab[token] for token in text])
                     title_tokens = torch.tensor([vocab[token] for token in title])
                 else:
-                    ab_token_ids = list(filter(lambda x: x is not Vocab.UNK, [vocab[token] for token in text]))
+                    ab_token_ids = list(filter(lambda x: x is not MeSHMaskDataset.UNK, [vocab[token] for token in text]))
                     ab_tokens = torch.tensor(ab_token_ids)
-                    title_token_ids = list(filter(lambda x: x is not Vocab.UNK, [vocab[token] for token in title]))
+                    title_token_ids = list(filter(lambda x: x is not MeSHMaskDataset.UNK, [vocab[token] for token in title]))
                     title_tokens = torch.tensor(title_token_ids)
                 if len(ab_tokens) == 0:
                     logging.info('Row contains no tokens.')
@@ -94,7 +94,7 @@ def _create_data_from_iterator(vocab, iterator, include_unk, is_multichannel=Tru
                 if include_unk:
                     tokens = torch.tensor([vocab[token] for token in text])
                 else:
-                    token_ids = list(filter(lambda x: x is not Vocab.UNK, [vocab[token]
+                    token_ids = list(filter(lambda x: x is not MeSHMaskDataset.UNK, [vocab[token]
                                                                            for token in text]))
                     tokens = torch.tensor(token_ids)
                 if len(tokens) == 0:
@@ -340,7 +340,7 @@ def _create_data_from_iterator_mesh_mask(vocab, iterator, include_unk, is_test=F
                 if include_unk:
                     tokens = torch.tensor([vocab[token] for token in text])
                 else:
-                    token_ids = list(filter(lambda x: x is not Vocab.UNK, [vocab[token]
+                    token_ids = list(filter(lambda x: x is not MeSHMaskDataset.UNK, [vocab[token]
                                                                            for token in text]))
                     tokens = torch.tensor(token_ids)
                 if len(tokens) == 0:
@@ -354,7 +354,7 @@ def _create_data_from_iterator_mesh_mask(vocab, iterator, include_unk, is_test=F
                 if include_unk:
                     tokens = torch.tensor([vocab[token] for token in text])
                 else:
-                    token_ids = list(filter(lambda x: x is not Vocab.UNK, [vocab[token]
+                    token_ids = list(filter(lambda x: x is not MeSHMaskDataset.UNK, [vocab[token]
                                                                            for token in text]))
                     tokens = torch.tensor(token_ids)
                 if len(tokens) == 0:
@@ -367,6 +367,8 @@ def _create_data_from_iterator_mesh_mask(vocab, iterator, include_unk, is_test=F
 
 
 class MeSHMaskDataset(torch.utils.data.Dataset):
+    UNK = '<unk>'
+
     def __init__(self, vocab, data, idfs, labels=None):
         """Initiate text-classification dataset.
          Arguments:
